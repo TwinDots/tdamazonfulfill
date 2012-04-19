@@ -1,4 +1,4 @@
-#Amazon Fulfilment LS Module
+#Amazon Fulfilment LemonStand Module
 
 ##Shipping Module
 
