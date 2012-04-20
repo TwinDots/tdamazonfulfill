@@ -101,7 +101,7 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
          */
         $host_obj->add_field('add_fulfillment', 'Add fulfillment quote to shipping quote?', 'right')
                     ->tab('Fulfillment Options')->comment('Setting this to true will pass the fulfillment charge
-                         from Amazon onto your customers')->renderAs(frm_checkbox);
+                         from Amazon onto your customers')->renderAs(frm_onoffswitcher);
     }
     
     /**
@@ -231,6 +231,10 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
      */
     public function validate_config_on_save($host_obj)
     {
+        /**
+         * We are going to make sure we can connect to Amazon here, it will be hell
+         * if we assume everything is ok
+         */
         
     } 
     
