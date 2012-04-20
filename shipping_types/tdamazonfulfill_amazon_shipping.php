@@ -55,6 +55,27 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             $host_obj->add_field('secret_access_key', 'Secret access key', 'right')
                     ->tab('API Credentials')->comment('Amazon secret access key', 'above')
                     ->renderAs(frm_text)->validation()->required('Please specify a secret access key');     
+            /**
+             * Seller ID
+             */
+            $host_obj->add_field('seller_id', 'Your seller ID', 'left')
+                    ->tab('API Credentials')
+                    ->renderAs(frm_text)->validation()->required('Please specify a seller ID');        
+            
+            /**
+             * Application Name
+             */
+            $host_obj->add_field('marketplace_id', 'Your marketplace ID', 'right')
+                    ->tab('API Credentials')
+                    ->renderAs(frm_text)->validation()->required('Please specify a marketplace ID');
+            
+            /** 
+             * MWS end point URL
+             */
+            $host_obj->add_field('end_point', 'Which Amazon server to use', 'left')
+                    ->tab('API Credentials')
+                    ->renderAs(frm_dropdown)->validation()->required('Please specify a Amazon server'); 
+            
         }
                 
         /**
@@ -82,6 +103,41 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                     ->tab('Fulfillment Options')->comment('Setting this to true will pass the fulfillment charge
                          from Amazon onto your customers')->renderAs(frm_checkbox);
     }
+    
+    /**
+     * Get current state of end point
+     * 
+     * @access public
+     * @param int $value
+     * @return bool
+     */
+    public function get_end_point_option_state($value = 1)
+    {
+        return in_array($value, $this->get_end_point_options());
+    }
+    
+    /**
+     * Get possible options for successful fulfillments
+     * 
+     * @access public
+     * @return array
+     */
+    public function get_end_point_options( $current_key_value = -1 )
+    {
+        $options = array(
+            'mws.amazonservices.com' => 'US',
+            'mws.amazonservices.co.uk' => 'UK',
+            'mws.amazonservices.de' => 'Germany',
+            'mws.amazonservices.fr' => 'France',
+            'mws.amazonservices.jp' => 'Japan',
+            'mws.amazonservices.com.cn' => 'China'
+        );
+        
+        if ($current_key_value == -1)
+            return $options;
+
+        return array_key_exists($current_key_value, $options) ? $options[$current_key_value] : null;
+    }    
         
     /**
      * Get current state of fulfillment success status
@@ -167,13 +223,27 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
         return array_key_exists($current_key_value, $options) ? $options[$current_key_value] : null;
     }
     
+    /**
+     * Any additional validation rules here
+     * 
+     * @access public
+     * @param ActiveRecord $host_obj 
+     */
     public function validate_config_on_save($host_obj)
     {
         
     } 
     
-    public function get_quote($parameters)
+    /**
+     * Get a shipping quote from Amazon
+     * 
+     * @access public
+     * @param array $parameters
+     * @return 
+     */
+    public function get_quote( $parameters )
     {
+        extract( $parameters );
         return 1;
     }      
 }
