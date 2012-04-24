@@ -129,8 +129,6 @@ class tdamazonfulfill_request
         {
             case 'inventory':
                 $this->_service_url = '/FulfillmentInventory/'.self::MWS_VERSION;
-                $this->_request_url = "https://{$this->_end_point}{$this->_service_url}";
-                $this->_generate_url();
             break;
             default:
                 $this->_service_url = '/FulfillmentOutboundShipment/'.self::MWS_VERSION;
@@ -154,9 +152,19 @@ class tdamazonfulfill_request
         curl_setopt( $ch, CURLOPT_USERAGENT, $this->_user_agent() );
         $this->_content = curl_exec($ch);
         $this->_response = curl_getinfo($ch);
-        
         curl_close($ch);
     }     
+    
+    /**
+     * Gets the request URL
+     *  
+     * @access public
+     * @return string
+     */
+    public function get_request_url()
+    {
+        return $this->_request_url;
+    }
    
     /**
      * If the status code is 200 it returns the content of the response
@@ -166,9 +174,9 @@ class tdamazonfulfill_request
      */
     public function get_content()
     {
-        if ( $this->_response['http_code'] == '200' ) {
+        //if ( $this->_response['http_code'] == '200' ) {
             return $this->_content;
-        }
+      //  }
         return false;
     }   
     
@@ -182,13 +190,13 @@ class tdamazonfulfill_request
      */
     private function _generate_url() 
     {
-        $this->data['AWSAccessKeyId'] = $this->_access_key;
-        $this->data['SellerId'] = $this->_seller_id;
-        $this->data['SignatureVersion'] = self::SIGNATURE_VERSION;
-        $this->data['SignatureMethod'] = self::SIGNATURE_METHOD;
-        $this->data['Version'] = self::MWS_VERSION;       
-        $this->data['ReponseGroup'] = 'Basic';
-        $this->data['Timestamp'] = gmdate("Y-m-d\TH:i:s.\\0\\0\\0\\Z", time());
+        $this->_data['AWSAccessKeyId'] = $this->_access_key;
+        $this->_data['SellerId'] = $this->_seller_id;
+        $this->_data['SignatureVersion'] = self::SIGNATURE_VERSION;
+        $this->_data['SignatureMethod'] = self::SIGNATURE_METHOD;
+        $this->_data['Version'] = self::MWS_VERSION;       
+        $this->_data['ReponseGroup'] = 'Basic';
+        $this->_data['Timestamp'] = gmdate("Y-m-d\TH:i:s.\\0\\0\\0\\Z", time());
         $query = http_build_query($this->_data);
         $http_request = 'POST';
         $http_request .= "\n";

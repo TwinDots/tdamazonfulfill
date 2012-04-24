@@ -251,7 +251,10 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
     public function get_quote( $parameters )
     {
         $shipping_info = Shop_CheckoutData::get_shipping_info();
-       
+        
+        /**
+         * Prepare data to send to Amazon
+         */
         $data = array(
             'Action' => 'GetFulfillmentPreview',
             'Address.Name' => 'n/a',  // Amazone require this but we don't have this / I don't know what it is
@@ -264,16 +267,40 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
         $count = 1;
         foreach ( $parameters['cart_items'] as $item ) {
             $data["Items.member.$count.Quantity"] = $item->quantity;
-             $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
+            $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
             $data["Items.member.$count.SellerSKU"] = $item->product->sku;
             $count++;
         }
         
+        /**
+         * Create a new request to amazon
+         */
         $request = new tdamazonfulfill_request( $parameters['host_obj'], 'fulfill', $data );
         $request->request();
-        if ( $request->get_content() ) {
-             //echo $request->get_content();
+                
+        /**
+         * If we actually get anything back from Amazon
+         */
+        if ( $content = $request->get_content() ) {       
+            /**
+             * Load the XML so we can look at it
+             */
+            $model = new tdamazonfulfill_model( $content, $request->get_request_url() );
+            
+            if ( $model->has_errors() ) {
+                traceLog(print_r($model->get_errors(),true));
+                return null;
+            } else {
+                /**
+                 * Get quote
+                 */
+                if ( $parameters['host_obj'] ->add_fulfillment ) {
+                    return $model->get_shipping_quote('Expedited',true);
+                } else {
+                    return $model->get_shipping_quote('Expedited',false);
+                }
+            }
         }
-        return 1;
+        return null;
     }      
 }
