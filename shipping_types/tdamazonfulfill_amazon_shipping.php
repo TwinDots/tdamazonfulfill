@@ -125,12 +125,15 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
     public function get_end_point_options( $current_key_value = -1 )
     {
         $options = array(
-            'mws.amazonservices.com' => 'US',
-            'mws.amazonservices.co.uk' => 'UK',
-            'mws.amazonservices.de' => 'Germany',
-            'mws.amazonservices.fr' => 'France',
+            'mws.amazonservices.ca' => 'Canada',
+            'mws.amazonservices.co.cn' => 'China',
+            'mws-eu.amazonservices.com' => 'Germany',
+            'mws-eu.amazonservices.com' => 'Spain',
+            'mws-eu.amazonservices.com' => 'France',
+            'mws-eu.amazonservices.com' => 'Italy',
             'mws.amazonservices.jp' => 'Japan',
-            'mws.amazonservices.com.cn' => 'China'
+            'mws-eu.amazonsevices.com' => 'UK',
+            'mws.amazonservices.com' => 'US'
         );
         
         if ($current_key_value == -1)
@@ -247,9 +250,30 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
      */
     public function get_quote( $parameters )
     {
-        extract( $parameters );
+        $shipping_info = Shop_CheckoutData::get_shipping_info();
+       
+        $data = array(
+            'Action' => 'GetFulfillmentPreview',
+            'Address.Name' => 'n/a',  // Amazone require this but we don't have this / I don't know what it is
+            'Address.Line1' => $shipping_info->street_address,
+            'Address.City' => $parameters['city'],
+            'Address.StateOrProvinceCode' => Shop_CountryState::find_by_id($parameters['state_id'])->code,
+            'Address.PostalCode' => $parameters['zip'],
+            'Address.CountryCode' => Shop_Country::find_by_id($parameters['country_id'])->code
+        );
+        $count = 1;
+        foreach ( $parameters['cart_items'] as $item ) {
+            $data["Items.member.$count.Quantity"] = $item->quantity;
+             $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
+            $data["Items.member.$count.SellerSKU"] = $item->product->sku;
+            $count++;
+        }
+        
+        $request = new tdamazonfulfill_request( $parameters['host_obj'], 'fulfill', $data );
+        $request->request();
+        if ( $request->get_content() ) {
+             //echo $request->get_content();
+        }
         return 1;
     }      
 }
-
-?>

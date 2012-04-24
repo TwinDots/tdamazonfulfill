@@ -30,7 +30,7 @@ class tdamazonfulfill_module extends Core_ModuleBase
      */
     public function subscribeEvents()
     {
-		Backend::$events->addEvent('shop:onExtendProductForm', $this, 'extend_product_form');
+        Backend::$events->addEvent('shop:onExtendProductForm', $this, 'extend_product_form');
         Backend::$events->addEvent('shop:onExtendProductModel', $this, 'extend_product_model');
     }
     
@@ -64,7 +64,7 @@ class tdamazonfulfill_module extends Core_ModuleBase
      */    
     public function register_access_points()
     {
-        return array('tdamazon_fulfill_update_inv','update_inventory');
+        //return array('tdamazon_fulfill_update_inv','update_inventory');
     }
     
     public function update_inventory()
