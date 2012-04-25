@@ -241,6 +241,18 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
         
     } 
     
+    public function list_enabled_options($host_obj)
+    {
+        $result = array();
+
+        $options = $this->get_shipping_type_options();
+        foreach ( $options as $option_id=>$option_name ) {
+            $result[] = array('id'=>$option_id, 'name'=>$option_name);
+        }
+
+        return $result;
+    }
+    
     /**
      * Get a shipping quote from Amazon
      * 
@@ -251,7 +263,6 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
     public function get_quote( $parameters )
     {
         $shipping_info = Shop_CheckoutData::get_shipping_info();
-        
         /**
          * Prepare data to send to Amazon
          */
@@ -265,13 +276,20 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             'Address.CountryCode' => Shop_Country::find_by_id($parameters['country_id'])->code
         );
         $count = 1;
+        /**
+         * We take the all or nothing approach here, we only want Amazon as an option if all products are eligible for fulfillment
+         */
         foreach ( $parameters['cart_items'] as $item ) {
-            $data["Items.member.$count.Quantity"] = $item->quantity;
-            $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
-            $data["Items.member.$count.SellerSKU"] = $item->product->sku;
-            $count++;
+            if ( $item->product->x_amazon_fulfil ) {
+                $data["Items.member.$count.Quantity"] = $item->quantity;
+                $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
+                $data["Items.member.$count.SellerSKU"] = $item->product->sku;
+                $count++;
+            } else {
+                return null;
+            }
         }
-        
+
         /**
          * Create a new request to amazon
          */
@@ -288,7 +306,7 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             $model = new tdamazonfulfill_model( $content, $request->get_request_url() );
             
             if ( $model->has_errors() ) {
-                traceLog(print_r($model->get_errors(),true));
+                traceLog(print_r($model->get_errors(),true),'amazon_fulfillment');
                 return null;
             } else {
                 /**

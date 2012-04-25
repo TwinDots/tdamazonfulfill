@@ -104,7 +104,6 @@ class tdamazonfulfill_model
                 $delivery_fee = $member->xpath('//EstimatedFees/member[descendant::Name="FBATransportationFee"]');
                                 
                 $total = $total + $delivery_fee[0]->Amount->Value; 
-                traceLog($total);
                 return $total;
             }
         }
