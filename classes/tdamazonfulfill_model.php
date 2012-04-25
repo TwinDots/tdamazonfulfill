@@ -91,19 +91,18 @@ class tdamazonfulfill_model
      */
     public function get_shipping_quote( $shipping_speed = 'Expedited', $include_fulfil = false )
     {
-        if ( $this->_xml_obj->xpath('//member[descendant::ShippingSpeedCategory="'.$shipping_speed.'"]') ) {
+        if ( $this->_xml_obj->xpath('//GetFulfillmentPreviewResult/FulfillmentPreviews/member[descendant::ShippingSpeedCategory="'.$shipping_speed.'"]') ) {
             $member = $this->_xml_obj->xpath('//member[descendant::ShippingSpeedCategory="'.$shipping_speed.'"]');
             $member = $member[0];
             if ( isset( $member->EstimatedFees) ) {
-                $fees = $member->EstimatedFees;
-                $total = '0';
+                $total = '0.00';
                 if ( $include_fulfil ) {
-                    $fulfil_fee = $member->xpath('//EstimatedFees/member[descendant::Name="FBAPerOrderFulfillmentFee"]');
-                    $total = $total + $fulfil_fee[0]->Amount->Value; 
+                    $fulfil_fee = $member->xpath('.//EstimatedFees/member[descendant::Name="FBAPerOrderFulfillmentFee"]');
+                    $total = $total + (string)$fulfil_fee[0]->Amount->Value; 
                 }
-                $delivery_fee = $member->xpath('//EstimatedFees/member[descendant::Name="FBATransportationFee"]');
-                                
-                $total = $total + $delivery_fee[0]->Amount->Value; 
+                $delivery_fee = $member->xpath('.//EstimatedFees/member[descendant::Name="FBATransportationFee"]');
+                $total = $total + (string)$delivery_fee[0]->Amount->Value; 
+                
                 return $total;
             }
         }
