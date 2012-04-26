@@ -88,12 +88,12 @@ class tdamazonfulfill_module extends Core_ModuleBase
      */
     public function register_access_points()
     {
-        //return array('tdamazon_fulfill_update_inv','update_inventory');
+        return array('update_amazon_inventory');
     }
 
-    public function update_inventory()
+    public function update_amazon_inventory()
     {
-        
+        tdamazonfulfill_inventory::sync();
     }
 
     /**

@@ -113,11 +113,24 @@ class tdamazonfulfill_model
      * Gets the stock count for all items and returns array with the item ID as the key
      * 
      * @access public
+     * @todo Add support for expected delivery date
+     * @param array $products
      * @return array
      */
-    public function get_stock_count()
+    public function get_stock_count( $products )
     {
-        return array();        
+        $data = array();
+        foreach ( $products as $product ) {
+            $sku = $product['sku'];
+            $member = $this->_xml_obj->xpath('.//InventorySupplyList/member[descendant::SellerSKU="'.$sku.'"]');
+            if ( $member && isset($member[0]->ASIN) ) {
+                $stock = strip_tags($member[0]->InStockSupplyQuantity->asXML());
+                $data[$sku] = $stock;
+            } else {
+                $data[$sku] = 'ERROR';
+            }
+        }
+        return $data;        
     }
     
     /**
