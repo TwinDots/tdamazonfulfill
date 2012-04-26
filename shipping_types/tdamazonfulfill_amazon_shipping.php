@@ -16,11 +16,11 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
     /**
      * Contains all config option values
      * 
-     * @access private
+     * @access public
      * @var ActiveRecord
      */
-    private $host;
-
+    public $host;
+    
     /**
      * Shipping module information
      * 
@@ -104,6 +104,12 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
         $host_obj->add_field('add_fulfillment', 'Add fulfillment quote to shipping quote?', 'right')
                 ->tab('Fulfillment Options')->comment('Setting this to true will pass the fulfillment charge
                          from Amazon onto your customers')->renderAs(frm_onoffswitcher);
+        
+        /**
+         * Note on packing slip
+         */
+        $host_obj->add_field('packing_note', 'Note to be written on packing slip (customer will see this)')
+                ->tab('Fulfillment Options')->renderAs(frm_textarea)->validation()->required('Please specify a packing note');
     }
 
     /**
@@ -323,7 +329,10 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
         /**
          * Create a new request to amazon
          */
-        $request = new tdamazonfulfill_request($parameters['host_obj'], 'fulfill', $data);
+        $host_obj = $parameters['host_obj'];
+        
+        $request = new tdamazonfulfill_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
+                $host_obj->end_point, 'fulfil', $data);
         $request->request();
 
         /**
@@ -343,7 +352,6 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                  * Get quote
                  */
                 $result = array();
-                print_r($allowed_methods);
                 foreach ( $allowed_methods as $id ) {
                     $result[$all_methods[$id]] = array(
                         'id' => $id,

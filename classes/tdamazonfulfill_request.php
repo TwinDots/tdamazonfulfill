@@ -111,17 +111,20 @@ class tdamazonfulfill_request
      * Constructs the request URL
      * 
      * @access private
-     * @param Db_ActiveRecord $host_obj
+     * @param string $seller_id
+     * @param string $access_key_id
+     * @param string $secret_key
+     * @param string $end_point
      * @param string $service
      * @param array $data 
      */
-    public function tdamazonfulfill_request( Db_ActiveRecord $host_obj, $service = 'fulfill', $data = array() )
+    public function tdamazonfulfill_request( $seller_id, $access_key_id, $secret_key, $end_point, $service = 'fulfil', $data = array() )
     {
         $this->_application_version = '';
-        $this->_seller_id = $host_obj->seller_id;
-        $this->_access_key = $host_obj->access_key_id;
-        $this->_secret_key = $host_obj->secret_access_key;
-        $this->_end_point = $host_obj->end_point;
+        $this->_seller_id = $seller_id;
+        $this->_access_key = $access_key_id;
+        $this->_secret_key = $secret_key;
+        $this->_end_point = $end_point;
         
         $this->_data = $data;
         
@@ -179,6 +182,24 @@ class tdamazonfulfill_request
       //  }
         return false;
     }   
+    
+    private function load_xml_data()
+    {
+        if (!strlen($this->config_data))
+            return;
+
+        $object = new SimpleXMLElement($this->config_data);
+        foreach ($object->children() as $child)
+        {
+            $code = $child->id;
+            $value = base64_decode($child->value, true);
+            $this->$code = unserialize($value ? $value : $child->value);
+            $code_array = (array)$code;
+            $this->fetched_data[$code_array[0]] = $this->$code;
+        }
+
+        $this->get_shippingtype_object()->validate_config_on_load($this);
+    }
     
     /**
      * Generates the URL that we will be requesting
