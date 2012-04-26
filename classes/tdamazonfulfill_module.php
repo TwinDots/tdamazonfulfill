@@ -96,12 +96,25 @@ class tdamazonfulfill_module extends Core_ModuleBase
         
     }
 
+    /**
+     * Sends request to Amazon
+     * 
+     * @access public
+     * @param Shop_Order $order
+     * @param int $new_status_id
+     * @param int $prev_status_id
+     * @param array $comments
+     * @param array $send_notifications
+     * @return bool
+     */
     public function fulfil_order($order, $new_status_id, $prev_status_id, $comments, $send_notifications)
     {
+        traceLog('Attempting to process order: '.$order->id, 'amazon_fulfillment');
+
         /**
          * If the order is being changed to paid
          */
-        if ( $new_status_id == 2 && $order->payment_processed ) {
+        if ( $new_status_id == 2  ) {
             if ( $order ) {
                 $shipping_option = $order->shipping_method;
 
@@ -110,23 +123,20 @@ class tdamazonfulfill_module extends Core_ModuleBase
                             'fulfill_unsuccess_status'
                                 )
                 );
-
                 if ( $shipping_type = $order->shipping_method->get_shippingtype_object() ) {
-                    if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) {
+                    if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) { // if shipping method is ours
                         $fulfil = new tdamazonfulfill_fulfil($order);
                         if ( $fulfil->has_error() ) {
                             $new_status = $shipping_params['fulfill_unsuccess_status'];
                             $order->status = $new_status;
                             $order->save();
                             Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
-
-                            throw new Exception('Unable to send order to Amazon, please contact us for assitance');
+                            Phpr::$session->flash['error'] = 'Unable to send order to Amazon, please contact us for assitance';
                         } else {
                             $new_status = $shipping_params['fulfill_success_status'];
                             $order->status = $new_status;
                             $order->save();
                             Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
-
                         }
                         return false;
                     }
