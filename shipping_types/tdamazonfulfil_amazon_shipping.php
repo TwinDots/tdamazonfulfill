@@ -299,13 +299,20 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
         $allowed_methods = $parameters['host_obj']->allowed_methods;
         $all_methods = $this->get_service_list();
         
+        // This makes the address line '1' for the backend, not sure if this is the best way but it works
+        if ( empty($shipping_info->street_address) ) {
+            $street_address = '1';
+        } else {
+            $street_address = $shipping_info->street_address;
+        }
+        
         /**
          * Prepare data to send to Amazon
          */
         $data = array(
             'Action' => 'GetFulfillmentPreview',
             'Address.Name' => 'n/a', // Amazone require this but we don't have this / I don't know what it is
-            'Address.Line1' => $shipping_info->street_address,
+            'Address.Line1' => $street_address,
             'Address.City' => $parameters['city'],
             'Address.StateOrProvinceCode' => Shop_CountryState::find_by_id($parameters['state_id'])->code,
             'Address.PostalCode' => $parameters['zip'],

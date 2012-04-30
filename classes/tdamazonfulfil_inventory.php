@@ -12,6 +12,7 @@ class tdamazonfulfil_inventory
      */
     public static function sync()
     {
+        self::log('Sync:','Sync started');
         $products = Db_DbHelper::queryArray('SELECT id, sku FROM shop_products WHERE x_amazon_fulfil = 1 AND track_inventory = 1');
         if ( !empty($products) ) {
             $data = array();
