@@ -155,7 +155,6 @@ class tdamazonfulfil_request
         curl_setopt( $ch, CURLOPT_USERAGENT, $this->_user_agent() );
         $this->_content = curl_exec($ch);
         $this->_response = curl_getinfo($ch);
-        traceLog(http_build_query($this->_data) );
         curl_close($ch);
     }     
     
