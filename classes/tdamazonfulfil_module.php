@@ -6,7 +6,7 @@
  * @author Matthew Caddoo
  */
 
-class tdamazonfulfill_module extends Core_ModuleBase
+class tdamazonfulfil_module extends Core_ModuleBase
 {
 
     /**
@@ -93,7 +93,7 @@ class tdamazonfulfill_module extends Core_ModuleBase
 
     public function update_amazon_inventory()
     {
-        tdamazonfulfill_inventory::sync();
+        tdamazonfulfil_inventory::sync();
     }
 
     /**
@@ -118,14 +118,14 @@ class tdamazonfulfill_module extends Core_ModuleBase
             if ( $order ) {
                 $shipping_option = $order->shipping_method;
 
-                $shipping_params = tdamazonfulfill_params::get_params($shipping_option->config_data, array(
+                $shipping_params = tdamazonfulfil_params::get_params($shipping_option->config_data, array(
                             'fulfill_success_status',
                             'fulfill_unsuccess_status'
                                 )
                 );
                 if ( $shipping_type = $order->shipping_method->get_shippingtype_object() ) {
-                    if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) { // if shipping method is ours
-                        $fulfil = new tdamazonfulfill_fulfil($order);
+                    if ( get_class($shipping_type) == 'tdamazonfulfil_amazon_shipping' ) { // if shipping method is ours
+                        $fulfil = new tdamazonfulfil_fulfil($order);
                         if ( $fulfil->has_error() ) {
                             $new_status = $shipping_params['fulfill_unsuccess_status'];
                             $order->status = $new_status;

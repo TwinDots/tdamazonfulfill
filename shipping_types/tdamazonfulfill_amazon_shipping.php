@@ -10,7 +10,7 @@
  * @author Matthew Caddoo
  */
 
-class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
+class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
 {
 
     /**
@@ -331,7 +331,7 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
          */
         $host_obj = $parameters['host_obj'];
         
-        $request = new tdamazonfulfill_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
+        $request = new tdamazonfulfil_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
                 $host_obj->end_point, 'fulfil', $data);
         $request->request();
 
@@ -342,7 +342,7 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             /**
              * Load the XML so we can look at it
              */
-            $model = new tdamazonfulfill_model($content, $request->get_request_url());
+            $model = new tdamazonfulfil_model($content, $request->get_request_url());
 
             if ( $model->has_errors() ) {
                 traceLog(print_r($model->get_errors(), true), 'amazon_fulfillment');

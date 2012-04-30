@@ -4,7 +4,7 @@
  *
  * @author Matthew Caddoo
  */
-class tdamazonfulfill_request
+class tdamazonfulfil_request
 {
     /**
      * The name of the application (this module)
@@ -118,7 +118,7 @@ class tdamazonfulfill_request
      * @param string $service
      * @param array $data 
      */
-    public function tdamazonfulfill_request( $seller_id, $access_key_id, $secret_key, $end_point, $service = 'fulfil', $data = array() )
+    public function tdamazonfulfil_request( $seller_id, $access_key_id, $secret_key, $end_point, $service = 'fulfil', $data = array() )
     {
         $this->_application_version = '';
         $this->_seller_id = $seller_id;
