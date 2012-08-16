@@ -88,7 +88,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
      */
     public function register_access_points()
     {
-        return array('update_amazon_inventory');
+        return array('inventory','update_amazon_inventory');
     }
 
     public function update_amazon_inventory()
