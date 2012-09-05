@@ -121,7 +121,11 @@ class tdamazonfulfill_model
     {
         $data = array();
         foreach ( $products as $product ) {
-            $sku = $product['sku'];
+            if ( empty($product['x_amazon_sku'])) 
+                $sku = $product['sku'];
+            else
+                $sku = $product['x_amazon_sku'];
+            
             $member = $this->_xml_obj->xpath('.//InventorySupplyList/member[descendant::SellerSKU="'.$sku.'"]');
             if ( $member && isset($member[0]->ASIN) ) {
                 $stock = strip_tags($member[0]->InStockSupplyQuantity->asXML());

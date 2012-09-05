@@ -348,7 +348,10 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                 if ( $item->product->x_amazon_fulfill ) {
                     $data["Items.member.$count.Quantity"] = $item->quantity;
                     $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
-                    $data["Items.member.$count.SellerSKU"] = $item->product->sku;
+                    if ( !empty($item->product->x_amazon_sku) ) 
+                        $data["Items.member.$count.SellerSKU"] = $item->product->x_amazon_sku;
+                    else
+                        $data["Items.member.$count.SellerSKU"] = $item->product->sku;
                     $count++;
                 } else {
                     return null;

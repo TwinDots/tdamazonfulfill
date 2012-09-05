@@ -120,7 +120,10 @@ class tdamazonfulfill_fulfill
             $data["Items.member.$count.PerUnitDeclaredValue.CurrencyCode"] = Shop_CurrencySettings::get()->code;
             $data["Items.member.$count.Quantity"] = $item->quantity;
             $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $id;
-            $data["Items.member.$count.SellerSKU"] = $item->product_sku;
+            if ( !empty($item->product->x_amazon_sku) )
+                $data["Items.member.$count.SellerSKU"] = $item->product->x_amazon_sku;
+            else
+                $data["Items.member.$count.SellerSKU"] = $item->product_sku;
             $count++;
         }   
         return $data;

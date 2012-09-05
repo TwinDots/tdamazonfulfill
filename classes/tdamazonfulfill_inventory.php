@@ -13,14 +13,18 @@ class tdamazonfulfill_inventory
     public static function sync()
     {
         self::log('Sync:','Sync started');
-        $products = Db_DbHelper::queryArray('SELECT id, sku FROM shop_products WHERE x_amazon_fulfill = 1 AND track_inventory = 1');
+        $products = Db_DbHelper::queryArray('SELECT id, sku, x_amazon_sku FROM shop_products WHERE x_amazon_fulfill = 1 AND track_inventory = 1');
         if ( !empty($products) ) {
             $data = array();
             // Construct data to send to Amazon to get back some quantitys 
             $data['Action'] = 'ListInventorySupply';
             $count = 1;
             foreach ( $products as $product ) {
-                $data["SellerSkus.member.$count"] = $product['sku'];
+                if ( !empty($product['x_amazon_sku']) ) {
+                    $data["SellerSkus.member.$count"] = $product['x_amazon_sku'];
+                } else {
+                    $data["SellerSkus.member.$count"] = $product['sku'];
+                }
                 $count++;
             }
             $shipping_method = Db_DbHelper::scalar('SELECT config_data FROM shop_shipping_options WHERE class_name = "tdamazonfulfill_amazon_shipping"');
