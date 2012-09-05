@@ -10,7 +10,7 @@
  * @author Matthew Caddoo
  */
 
-class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
+class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
 {
 
     /**
@@ -345,7 +345,7 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
              * We take the all or nothing approach here, we only want Amazon as an option if all products are eligible for fulfillment
              */
             foreach ( $parameters['cart_items'] as $item ) {
-                if ( $item->product->x_amazon_fulfil ) {
+                if ( $item->product->x_amazon_fulfill ) {
                     $data["Items.member.$count.Quantity"] = $item->quantity;
                     $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
                     $data["Items.member.$count.SellerSKU"] = $item->product->sku;
@@ -359,8 +359,8 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
              * Create a new request to amazon
              */
             
-            $request = new tdamazonfulfil_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
-                    $host_obj->end_point, 'fulfil', $data);
+            $request = new tdamazonfulfill_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
+                    $host_obj->end_point, 'fulfill', $data);
             $request->request();
 
             /**
@@ -370,7 +370,7 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
                 /**
                  * Load the XML so we can look at it
                  */
-                $model = new tdamazonfulfil_model($content, $request->get_request_url());
+                $model = new tdamazonfulfill_model($content, $request->get_request_url());
 
                 if ( $model->has_errors() ) {
                     traceLog($model->get_errors(), 'amazon_fulfillment');

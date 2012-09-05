@@ -4,7 +4,7 @@
  * 
  * @author Matthew Caddoo
  */
-class tdamazonfulfil_fulfil
+class tdamazonfulfill_fulfill
 {
     /**
      * Fulfillment Policy
@@ -33,7 +33,7 @@ class tdamazonfulfil_fulfil
      * @access public
      * @param Shop_Order $order 
      */
-    public function tdamazonfulfil_fulfil( Shop_Order $order )
+    public function tdamazonfulfill_fulfill( Shop_Order $order )
     {
         $this->_order = $order;
         $data = $this->_construct_data();
@@ -41,7 +41,7 @@ class tdamazonfulfil_fulfil
         // Not really sure about this part...
         $shipping_option = $this->_order->shipping_method;      
         
-        $shipping_params =  tdamazonfulfil_params::get_params($shipping_option->config_data, array(
+        $shipping_params =  tdamazonfulfill_params::get_params($shipping_option->config_data, array(
                 'seller_id',
                 'access_key_id',
                 'secret_access_key',
@@ -52,15 +52,15 @@ class tdamazonfulfil_fulfil
         
         $data['DisplayableOrderComment'] = $shipping_params['packing_note'];
 
-        $request = new tdamazonfulfil_request( $shipping_params['seller_id'], $shipping_params['access_key_id'],
+        $request = new tdamazonfulfill_request( $shipping_params['seller_id'], $shipping_params['access_key_id'],
                 $shipping_params['secret_access_key'], $shipping_params['end_point'], 'fulfil', $data );
         
         $request->request();
         
         if ( $request->get_content() ) {
-            $model = new tdamazonfulfil_model($request->get_content(), $request->get_request_url());
+            $model = new tdamazonfulfill_model($request->get_content(), $request->get_request_url());
             if ( $model->has_errors() ) {
-                traceLog(print_r($model->get_errors(), true), 'amazon_fulfillment');
+                traceLog($model->get_errors(), 'amazon_fulfillment');
                 $this->error = true;
                 return null;
             } else {

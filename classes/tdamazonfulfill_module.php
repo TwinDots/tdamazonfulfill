@@ -6,7 +6,7 @@
  * @author Matthew Caddoo
  */
 
-class tdamazonfulfil_module extends Core_ModuleBase
+class tdamazonfulfill_module extends Core_ModuleBase
 {
 
     /**
@@ -42,7 +42,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
         /**
          * Listen for order status changes so we can send the fulfillment reques to Amazon once the order is paid
          */
-        Backend::$events->addEvent('shop:onOrderBeforeStatusChanged', $this, 'fulfil_order');
+        Backend::$events->addEvent('shop:onOrderBeforeStatusChanged', $this, 'fulfill_order');
 
         /**
          * Add the extra log file to track errors
@@ -65,7 +65,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
      */
     public function extend_product_form($form)
     {
-        $form->add_form_field('x_amazon_fulfil')->tab('Amazon Fulfillment')
+        $form->add_form_field('x_amazon_fulfill')->tab('Amazon Fulfillment')
                 ->comment('Enable Amazon Fulfillment on this product, the SKU has to match Amazons in order for this to work')
                 ->renderAs(frm_onoffswitcher);
 
@@ -81,7 +81,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
      */
     public function extend_product_model($model)
     {
-        $model->define_column('x_amazon_fulfil', 'Amazon Fulfillment');
+        $model->define_column('x_amazon_fulfill', 'Amazon Fulfillment');
         $model->define_column('x_amazon_sku', 'Amazon SKU');
     }
 
@@ -93,12 +93,12 @@ class tdamazonfulfil_module extends Core_ModuleBase
      */
     public function register_access_points()
     {
-        return array('inventory','update_amazon_inventory');
+        return array('inventory'=>'update_amazon_inventory');
     }
 
     public function update_amazon_inventory()
     {
-        tdamazonfulfil_inventory::sync();
+        tdamazonfulfill_inventory::sync();
     }
 
     /**
@@ -112,7 +112,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
      * @param array $send_notifications
      * @return bool
      */
-    public function fulfil_order($order, $new_status_id, $prev_status_id, $comments, $send_notifications)
+    public function fulfill_order($order, $new_status_id, $prev_status_id, $comments, $send_notifications)
     {
         /**
          * If the order is being changed to paid
@@ -121,15 +121,15 @@ class tdamazonfulfil_module extends Core_ModuleBase
             if ( $order ) {
                 $shipping_option = $order->shipping_method;
 
-                $shipping_params = tdamazonfulfil_params::get_params($shipping_option->config_data, array(
+                $shipping_params = tdamazonfulfill_params::get_params($shipping_option->config_data, array(
                             'fulfill_success_status',
                             'fulfill_unsuccess_status'
                                 )
                 );
                 if ( $shipping_type = $order->shipping_method->get_shippingtype_object() ) {
-                    if ( get_class($shipping_type) == 'tdamazonfulfil_amazon_shipping' ) { // if shipping method is ours
-                        $fulfil = new tdamazonfulfil_fulfil($order);
-                        if ( $fulfil->has_error() ) {
+                    if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) { // if shipping method is ours
+                        $fulfill = new tdamazonfulfill_fulfill($order);
+                        if ( $fulfill->has_error() ) {
                             $new_status = $shipping_params['fulfill_unsuccess_status'];
                             $order->status = $new_status;
                             $order->save();

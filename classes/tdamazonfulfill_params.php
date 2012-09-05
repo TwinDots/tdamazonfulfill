@@ -6,7 +6,7 @@
  *
  * @author Matthew Caddoo
  */
-class tdamazonfulfil_params
+class tdamazonfulfill_params
 {
     /**
      * Opens XML loops through data and retrieves data

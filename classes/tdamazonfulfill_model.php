@@ -8,7 +8,7 @@
  * 
  * @author Matthew Caddoo
  */
-class tdamazonfulfil_model
+class tdamazonfulfill_model
 {
     /**
      * XML string returned from Amazon
@@ -50,7 +50,7 @@ class tdamazonfulfil_model
      * @access public
      * @param array $data
      */
-    public function tdamazonfulfil_model( $data, $namespace )
+    public function tdamazonfulfill_model( $data, $namespace )
     {
         $this->_xml_string = $data;
         $this->_namespace = $namespace;

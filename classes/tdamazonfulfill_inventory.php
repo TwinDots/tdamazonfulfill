@@ -5,7 +5,7 @@
  *
  * @author Matthew Caddoo
  */
-class tdamazonfulfil_inventory
+class tdamazonfulfill_inventory
 {
     /**
      * Large sync function that syncs inventory
@@ -13,7 +13,7 @@ class tdamazonfulfil_inventory
     public static function sync()
     {
         self::log('Sync:','Sync started');
-        $products = Db_DbHelper::queryArray('SELECT id, sku FROM shop_products WHERE x_amazon_fulfil = 1 AND track_inventory = 1');
+        $products = Db_DbHelper::queryArray('SELECT id, sku FROM shop_products WHERE x_amazon_fulfill = 1 AND track_inventory = 1');
         if ( !empty($products) ) {
             $data = array();
             // Construct data to send to Amazon to get back some quantitys 
@@ -23,8 +23,8 @@ class tdamazonfulfil_inventory
                 $data["SellerSkus.member.$count"] = $product['sku'];
                 $count++;
             }
-            $shipping_method = Db_DbHelper::scalar('SELECT config_data FROM shop_shipping_options WHERE class_name = "tdamazonfulfil_amazon_shipping"');
-            $shipping_params = tdamazonfulfil_params::get_params($shipping_method, array(
+            $shipping_method = Db_DbHelper::scalar('SELECT config_data FROM shop_shipping_options WHERE class_name = "tdamazonfulfill_amazon_shipping"');
+            $shipping_params = tdamazonfulfill_params::get_params($shipping_method, array(
                         'seller_id',
                         'access_key_id',
                         'secret_access_key',
@@ -33,12 +33,12 @@ class tdamazonfulfil_inventory
                             )
             );
 
-            $request = new tdamazonfulfil_request($shipping_params['seller_id'], $shipping_params['access_key_id'],
+            $request = new tdamazonfulfill_request($shipping_params['seller_id'], $shipping_params['access_key_id'],
                             $shipping_params['secret_access_key'], $shipping_params['end_point'], 'inventory', $data);
 
             $request->request();
             if ( $request->get_content() ) {
-                $model = new tdamazonfulfil_model($request->get_content(), $request->get_request_url());
+                $model = new tdamazonfulfill_model($request->get_content(), $request->get_request_url());
                 if ( $model->has_errors() ) {
                     self::log('error', 'Couldnt get inventory from Amazon');
                 } else {

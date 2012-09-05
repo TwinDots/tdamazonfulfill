@@ -1,4 +1,4 @@
-#Amazon Fulfilment LemonStand Module
+#Amazon Fulfillment LemonStand Module
 
 ##Shipping Module
 
