@@ -68,6 +68,10 @@ class tdamazonfulfil_module extends Core_ModuleBase
         $form->add_form_field('x_amazon_fulfil')->tab('Amazon Fulfillment')
                 ->comment('Enable Amazon Fulfillment on this product, the SKU has to match Amazons in order for this to work')
                 ->renderAs(frm_onoffswitcher);
+
+        $form->add_form_field('x_amazon_sku')->tab('Amazon Fulfillment')
+                ->comment('Enter an amazon SKU number for this product if it differs from the Lemonstand SKU')
+                ->renderAs(frm_text);
     }
 
     /**
@@ -78,6 +82,7 @@ class tdamazonfulfil_module extends Core_ModuleBase
     public function extend_product_model($model)
     {
         $model->define_column('x_amazon_fulfil', 'Amazon Fulfillment');
+        $model->define_column('x_amazon_sku', 'Amazon SKU');
     }
 
     /**
@@ -109,8 +114,6 @@ class tdamazonfulfil_module extends Core_ModuleBase
      */
     public function fulfil_order($order, $new_status_id, $prev_status_id, $comments, $send_notifications)
     {
-        traceLog('Attempting to process order: '.$order->id, 'amazon_fulfillment');
-
         /**
          * If the order is being changed to paid
          */
