@@ -91,7 +91,7 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
          */
         $host_obj->add_field('fulfill_unsuccess_status', 'Order status if fulfillment is unsuccessful', 'right')
                 ->tab('Fulfillment Options')->renderAs(frm_dropdown)->validation()->required('Please specify an order status if fulfillment is unsuccesful');
-
+ 
         /**
          * Configurable shipping speeds
          */
@@ -104,7 +104,19 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
         $host_obj->add_field('add_fulfillment', 'Add fulfillment quote to shipping quote?', 'right')
                 ->tab('Fulfillment Options')->comment('Setting this to true will pass the fulfillment charge
                          from Amazon onto your customers')->renderAs(frm_onoffswitcher);
-        
+                
+        /**
+         * Shipping speed price ovveride
+         */
+        $shipping_options = $this->get_service_list();
+
+        if ( is_array($shipping_options) ) {
+            foreach ( $shipping_options as $k => $option ) {
+                $host_obj->add_field("price_override_$option", "Price override for $option shipping", 'left', db_number)
+                    ->tab('Fulfillment Options')->renderAs(frm_text)->validation();
+            }
+        } 
+
         /**
          * Note on packing slip
          */
@@ -211,11 +223,6 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
     protected function get_service_list()
     {
         $services = array(
-            'USA' => array(
-                '01' => 'Standard',
-                '02' => 'Expedited',
-                '03' => 'Priority'
-            ),
             'DEFAULT' => array(
                 '01' => 'Standard',
                 '02' => 'Expedited',
@@ -295,81 +302,116 @@ class tdamazonfulfil_amazon_shipping extends Shop_ShippingType
     public function get_quote($parameters)
     {
         $shipping_info = Shop_CheckoutData::get_shipping_info();
-        
+
+        $host_obj = $parameters['host_obj'];
+
         $allowed_methods = $parameters['host_obj']->allowed_methods;
         $all_methods = $this->get_service_list();
-        
-        // This makes the address line '1' for the backend, not sure if this is the best way but it works
-        if ( empty($shipping_info->street_address) ) {
-            $street_address = '1';
-        } else {
-            $street_address = $shipping_info->street_address;
-        }
-        
-        /**
-         * Prepare data to send to Amazon
-         */
-        $data = array(
-            'Action' => 'GetFulfillmentPreview',
-            'Address.Name' => 'n/a', // Amazone require this but we don't have this / I don't know what it is
-            'Address.Line1' => $street_address,
-            'Address.City' => $parameters['city'],
-            'Address.StateOrProvinceCode' => Shop_CountryState::find_by_id($parameters['state_id'])->code,
-            'Address.PostalCode' => $parameters['zip'],
-            'Address.CountryCode' => Shop_Country::find_by_id($parameters['country_id'])->code
-        );
-        $count = 1;
-        /**
-         * We take the all or nothing approach here, we only want Amazon as an option if all products are eligible for fulfillment
-         */
-        foreach ( $parameters['cart_items'] as $item ) {
-            if ( $item->product->x_amazon_fulfil ) {
-                $data["Items.member.$count.Quantity"] = $item->quantity;
-                $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
-                $data["Items.member.$count.SellerSKU"] = $item->product->sku;
-                $count++;
-            } else {
-                return null;
+
+        // Here we decide if we need to communicate with Amazon at all, basically if a price override is defined
+        // for all shipping speeds then there is no point, but one isn't defined for example we need to get quotes.
+
+        $need_request = false;
+
+        foreach ( $allowed_methods as $id ) {
+            if ( empty($host_obj->{'price_override_'.$all_methods[$id]}) ) {
+                $need_request = true;
             }
         }
-
-        /**
-         * Create a new request to amazon
-         */
-        $host_obj = $parameters['host_obj'];
         
-        $request = new tdamazonfulfil_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
-                $host_obj->end_point, 'fulfil', $data);
-        $request->request();
-
-        /**
-         * If we actually get anything back from Amazon
-         */
-        if ( $content = $request->get_content() ) {
-            /**
-             * Load the XML so we can look at it
-             */
-            $model = new tdamazonfulfil_model($content, $request->get_request_url());
-
-            if ( $model->has_errors() ) {
-                traceLog(print_r($model->get_errors(), true), 'amazon_fulfillment');
-                return null;
+        // If we are making a request to Amazon
+        if ( $need_request ) {
+            // This makes the address line '1' for the backend, not sure if this is the best way but it works
+            if ( empty($shipping_info->street_address) ) {
+                $street_address = '1';
             } else {
+                $street_address = $shipping_info->street_address;
+            }
+            
+            /**
+             * Prepare data to send to Amazon
+             */
+            $data = array(
+                'Action' => 'GetFulfillmentPreview',
+                'Address.Name' => 'n/a', // Amazone require this but we don't have this / I don't know what it is
+                'Address.Line1' => $street_address,
+                'Address.City' => $parameters['city'],
+                'Address.StateOrProvinceCode' => Shop_CountryState::find_by_id($parameters['state_id'])->code,
+                'Address.PostalCode' => $parameters['zip'],
+                'Address.CountryCode' => Shop_Country::find_by_id($parameters['country_id'])->code
+            );
+            $count = 1;
+            /**
+             * We take the all or nothing approach here, we only want Amazon as an option if all products are eligible for fulfillment
+             */
+            foreach ( $parameters['cart_items'] as $item ) {
+                if ( $item->product->x_amazon_fulfil ) {
+                    $data["Items.member.$count.Quantity"] = $item->quantity;
+                    $data["Items.member.$count.SellerFulfillmentOrderItemId"] = $count;
+                    $data["Items.member.$count.SellerSKU"] = $item->product->sku;
+                    $count++;
+                } else {
+                    return null;
+                }
+            }
+
+            /**
+             * Create a new request to amazon
+             */
+            
+            $request = new tdamazonfulfil_request( $host_obj->seller_id, $host_obj->access_key_id, $host_obj->secret_access_key,
+                    $host_obj->end_point, 'fulfil', $data);
+            $request->request();
+
+            /**
+             * If we actually get anything back from Amazon
+             */
+            if ( $content = $request->get_content() ) {
                 /**
-                 * Get quote
+                 * Load the XML so we can look at it
                  */
-                $result = array();
-                foreach ( $allowed_methods as $id ) {
+                $model = new tdamazonfulfil_model($content, $request->get_request_url());
+
+                if ( $model->has_errors() ) {
+                    traceLog($model->get_errors(), 'amazon_fulfillment');
+                    return null;
+                } else {
+                    /**
+                     * Get quote
+                     */
+                    $result = array();
+                    foreach ( $allowed_methods as $k=>$id ) {
+                        if ( !empty($host_obj->{'price_override_'.$all_methods[$id]}) ) {
+                            $quote = $host_obj->{'price_override_'.$all_methods[$id]};
+                        } else {
+                            $quote = $model->get_shipping_quote($all_methods[$id], $parameters['host_obj']->add_fulfillment);
+                        }
+
+                        $result[$all_methods[$id]] = array(
+                            'id' => $id,
+                            'quote' => $quote
+                        );
+                    }
+                    if ( !empty($result) )
+                        return $result;
+                    else   
+                        return null;
+                }
+            }
+        } else {
+            $result = array();
+            foreach ( $allowed_methods as $id ) {
+                if ( !empty($host_obj->{'price_override_'.$all_methods[$id]}) ) {
                     $result[$all_methods[$id]] = array(
                         'id' => $id,
-                        'quote' => $model->get_shipping_quote($all_methods[$id], $parameters['host_obj']->add_fulfillment)
+                        'quote' => $host_obj->{'price_override_'.$all_methods[$id]}
                     );
                 }
-                if ( !empty($result) )
-                    return $result;
-                else   
-                    return null;
             }
+            if ( !empty($result) )
+                return $result;
+            else
+                return null;
         }
         return null;
     }
