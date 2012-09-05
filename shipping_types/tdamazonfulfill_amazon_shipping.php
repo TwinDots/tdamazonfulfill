@@ -121,7 +121,12 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
          * Note on packing slip
          */
         $host_obj->add_field('packing_note', 'Note to be written on packing slip (customer will see this)')
-                ->tab('Fulfillment Options')->renderAs(frm_textarea)->validation()->required('Please specify a packing note');
+            ->tab('Fulfillment Options')->renderAs(frm_textarea)->validation()->required('Please specify a packing note');
+
+        $host_obj->add_field('free_shipping_enabled', ' Enable free shipping option')->tab('Free Shipping')->renderAs(frm_checkbox)->validation();
+        $host_obj->add_field('free_shipping_option', ' Free shipping method')->tab('Free Shipping')->renderAs(frm_dropdown)->validation();
+        $host_obj->add_field('free_shipping_min_amount', 'Minimum order amount for free shipping', 'full', $type = db_number)->tab('Free Shipping')->renderAs(frm_text)->validation();        
+
     }
 
     /**
@@ -172,6 +177,23 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
     public function get_fulfill_success_status_option_state($value = 1)
     {
         return in_array($value, $this->get_fulfill_success_status_options());
+    }
+
+    /**
+     * Get list of free shipping options
+     * 
+     * @access public
+     * @param int $value
+     * @return bool
+     */
+    public function get_free_shipping_option_options($value = -1)
+    {
+        $options = $this->get_service_list();
+        
+        if ($value == -1)
+            return $options;
+
+        return array_key_exists($value, $options) ? $options[$value] : null;
     }
 
     /**
@@ -319,6 +341,8 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             }
         }
         
+        $result = array();
+
         // If we are making a request to Amazon
         if ( $need_request ) {
             // This makes the address line '1' for the backend, not sure if this is the best way but it works
@@ -382,7 +406,6 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                     /**
                      * Get quote
                      */
-                    $result = array();
                     foreach ( $allowed_methods as $k=>$id ) {
                         if ( !empty($host_obj->{'price_override_'.$all_methods[$id]}) ) {
                             $quote = $host_obj->{'price_override_'.$all_methods[$id]};
@@ -395,10 +418,6 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                             'quote' => $quote
                         );
                     }
-                    if ( !empty($result) )
-                        return $result;
-                    else   
-                        return null;
                 }
             }
         } else {
@@ -411,12 +430,20 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
                     );
                 }
             }
-            if ( !empty($result) )
-                return $result;
-            else
-                return null;
+
         }
-        return null;
+
+        if ( $host_obj->free_shipping_enabled 
+            && $parameters['total_price'] >= $host_obj->free_shipping_min_amount
+            && array_key_exists($host_obj->free_shipping_option, $all_methods) ) {
+                $free_option_name = $all_methods[$host_obj->free_shipping_option];
+                $result[$free_option_name] = array('id'=>$host_obj->free_shipping_option, 'quote'=>0);
+        }
+
+        if ( !empty($result) )
+            return $result;
+        else
+            return null;
     }
 
 }
