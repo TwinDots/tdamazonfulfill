@@ -38,7 +38,7 @@ class tdamazonfulfill_inventory
             );
 
             $request = new tdamazonfulfill_request($shipping_params['seller_id'], $shipping_params['access_key_id'],
-                            $shipping_params['secret_access_key'], $shipping_params['end_point'], 'inventory', $data);
+                $shipping_params['secret_access_key'], $shipping_params['end_point'], 'inventory', $data);
 
             $request->request();
             if ( $request->get_content() ) {
