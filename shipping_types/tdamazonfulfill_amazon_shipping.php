@@ -432,7 +432,7 @@ class tdamazonfulfill_amazon_shipping extends Shop_ShippingType
             }
 
         }
-
+ 
         if ( $host_obj->free_shipping_enabled 
             && $parameters['total_price'] >= $host_obj->free_shipping_min_amount
             && array_key_exists($host_obj->free_shipping_option, $all_methods) ) {
