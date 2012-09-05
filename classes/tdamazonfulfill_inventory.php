@@ -13,6 +13,8 @@ class tdamazonfulfill_inventory
     public static function sync()
     {
         self::log('Sync:','Sync started');
+        $sync_count = 0;
+        $fail_count = 0;
         $products = Db_DbHelper::queryArray('SELECT id, sku, x_amazon_sku FROM shop_products WHERE x_amazon_fulfill = 1 AND track_inventory = 1');
         if ( !empty($products) ) {
             $data = array();
@@ -41,6 +43,7 @@ class tdamazonfulfill_inventory
                 $shipping_params['secret_access_key'], $shipping_params['end_point'], 'inventory', $data);
 
             $request->request();
+
             if ( $request->get_content() ) {
                 $model = new tdamazonfulfill_model($request->get_content(), $request->get_request_url());
                 if ( $model->has_errors() ) {
@@ -49,9 +52,12 @@ class tdamazonfulfill_inventory
                     $stock_count = $model->get_stock_count($products);
                     foreach ( $stock_count as $sku => $stock ) {
                         if ( $stock == 'ERROR' ) {
+                            $fail_count++;
                             self::log('error', 'Item with SKU:'.$sku.' Could not be synced');
                         } else {
-                            Db_DbHelper::query('UPDATE shop_products SET in_stock = '.$stock.' WHERE sku = "'.$sku.'"');
+                            $sync_count++;
+
+                            Db_DbHelper::query('UPDATE shop_products SET in_stock = '.$stock.' WHERE sku = "'.$sku.'" OR x_amazon_sku = "'.$sku.'"');
                         }
                     }
                 }
@@ -59,6 +65,7 @@ class tdamazonfulfill_inventory
                 self::log('error', 'Couldnt sync inventory');
             }
         }
+        self::log('Sync:',"Sync ended, products synced: $sync_count, products failed: $fail_count");
     }
 
     /**
