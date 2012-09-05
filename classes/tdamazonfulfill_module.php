@@ -71,6 +71,9 @@ class tdamazonfulfill_module extends Core_ModuleBase
         $form->add_form_field('x_amazon_sku')->tab('Amazon Fulfillment')
                 ->comment('Enter an amazon SKU number for this product if it differs from the Lemonstand SKU')
                 ->renderAs(frm_text);
+
+        $form->add_form_field('x_amazon_fulfill_last_sync')->tab('Amazon Fulfillment')
+                ->renderAs(frm_datetime);
     }
 
     /**
@@ -82,6 +85,7 @@ class tdamazonfulfill_module extends Core_ModuleBase
     {
         $model->define_column('x_amazon_fulfill', 'Amazon Fulfillment');
         $model->define_column('x_amazon_sku', 'Amazon SKU');
+        $model->define_column('x_amazon_fulfill_last_sync', 'Time of last sync with Amazon');
     }
 
     /**

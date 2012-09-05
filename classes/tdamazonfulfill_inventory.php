@@ -58,6 +58,7 @@ class tdamazonfulfill_inventory
                             $sync_count++;
 
                             Db_DbHelper::query('UPDATE shop_products SET in_stock = '.$stock.' WHERE sku = "'.$sku.'" OR x_amazon_sku = "'.$sku.'"');
+                            Db_DbHelper::query('UPDATE shop_products SET x_amazon_fulfill_last_sync = NOW() WHERE sku = "'.$sku.'" OR x_amazon_sku = "'.$sku.'"');
                         }
                     }
                 }
