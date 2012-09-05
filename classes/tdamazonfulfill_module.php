@@ -73,7 +73,7 @@ class tdamazonfulfill_module extends Core_ModuleBase
                 ->renderAs(frm_text);
 
         $form->add_form_field('x_amazon_fulfill_last_sync')->tab('Amazon Fulfillment')
-                ->renderAs(frm_datetime)->disabled();
+                ->renderAs(frm_text)->disabled();
     }
 
     /**
