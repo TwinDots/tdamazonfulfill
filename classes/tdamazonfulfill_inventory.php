@@ -55,10 +55,22 @@ class tdamazonfulfill_inventory
                             $fail_count++;
                             self::log('error', 'Item with SKU:'.$sku.' Could not be synced');
                         } else {
-                            $sync_count++;
+                            $sync_count++;  
 
-                            Db_DbHelper::query('UPDATE shop_products SET in_stock = '.$stock.' WHERE sku = "'.$sku.'" OR x_amazon_sku = "'.$sku.'"');
-                            Db_DbHelper::query('UPDATE shop_products SET x_amazon_fulfill_last_sync = NOW() WHERE sku = "'.$sku.'" OR x_amazon_sku = "'.$sku.'"');
+                            $obj = new Shop_Product();
+                            $product = $obj->where('x_amazon_sku=?', $sku)->find();
+                            if ( !$product ) {
+                                $product = $obj->where('sku=?', $sku)->find();
+                            }
+                            if ( $product ) {
+                                $product->in_stock = $stock;
+                                $product->x_amazon_fulfill_last_sync = date('Y-m-d H:i:s');
+                                $product->save();
+                                // Update total stock
+                                shop_product::update_total_stock_value($product);
+                            } else {
+                                self::log('error', "Unable to update stock of item with SKU of: $sku");
+                            }
                         }
                     }
                 }
