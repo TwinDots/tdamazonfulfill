@@ -121,31 +121,29 @@ class tdamazonfulfill_module extends Core_ModuleBase
          * If the order is being changed to paid
          */
         if ( $new_status_id == 2  ) {
-            if ( $order ) {
-                $shipping_option = $order->shipping_method;
+            if ( $order && $shipping_type = $order->shipping_method->get_shippingtype_object() ) {
+                if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) { // if shipping method is ours
+                    $shipping_option = $order->shipping_method;
 
-                $shipping_params = tdamazonfulfill_params::get_params($shipping_option->config_data, array(
-                            'fulfill_success_status',
-                            'fulfill_unsuccess_status'
-                                )
-                );
-                if ( $shipping_type = $order->shipping_method->get_shippingtype_object() ) {
-                    if ( get_class($shipping_type) == 'tdamazonfulfill_amazon_shipping' ) { // if shipping method is ours
-                        $fulfill = new tdamazonfulfill_fulfill($order);
-                        if ( $fulfill->has_error() ) {
-                            $new_status = $shipping_params['fulfill_unsuccess_status'];
-                            $order->status = $new_status;
-                            $order->save();
-                            Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
-                            Phpr::$session->flash['error'] = 'Unable to send order to Amazon, please contact us for assitance';
-                        } else {
-                            $new_status = $shipping_params['fulfill_success_status'];
-                            $order->status = $new_status;
-                            $order->save();
-                            Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
-                        }
-                        return false;
+                    $shipping_params = tdamazonfulfill_params::get_params($shipping_option->config_data, array(
+                                'fulfill_success_status',
+                                'fulfill_unsuccess_status'
+                                    )
+                    );
+                    $fulfill = new tdamazonfulfill_fulfill($order);
+                    if ( $fulfill->has_error() ) {
+                        $new_status = $shipping_params['fulfill_unsuccess_status'];
+                        $order->status = $new_status;
+                        $order->save();
+                        Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
+                        Phpr::$session->flash['error'] = 'Unable to send order to Amazon, please contact us for assitance';
+                    } else {
+                        $new_status = $shipping_params['fulfill_success_status'];
+                        $order->status = $new_status;
+                        $order->save();
+                        Shop_OrderStatusLog::create_record($new_status, $order, $comments, $send_notifications);
                     }
+                    return false;
                 }
             }
         }
