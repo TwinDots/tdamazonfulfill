@@ -98,7 +98,7 @@ class tdamazonfulfill_fulfill
             'ShippingSpeedCategory' => $this->_order->shipping_sub_option,
             'DisplayableOrderId' => $this->_order->id,
             'DisplayableOrderDateTime' => gmdate("Y-m-d\TH:i:s.\\0\\0\\0\\Z", intval($this->_order->order_datetime->format('%s'))),
-            'DestinationAddress.Name' => 'N/A',
+            'DestinationAddress.Name' => $this->_order->shipping_first_name.' '.$this->_order->shipping_last_name,
             'DestinationAddress.Line1' => $this->_order->shipping_street_addr,
             'DestinationAddress.City' => $this->_order->shipping_city,
             'DestinationAddress.StateOrProvinceCode' => $this->_order->shipping_state->code,
